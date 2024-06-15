@@ -1,0 +1,502 @@
+//Mergesort
+#include <iostream>
+#include <vector>
+
+void merge(std::vector<int>& arr, int left, int mid, int right) {
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+
+    std::vector<int> L(n1), R(n2);
+
+    for (int i = 0; i < n1; ++i)
+        L[i] = arr[left + i];
+    for (int j = 0; j < n2; ++j)
+        R[j] = arr[mid + 1 + j];
+
+    int i = 0, j = 0, k = left;
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            ++i;
+        } else {
+            arr[k] = R[j];
+            ++j;
+        }
+        ++k;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        ++i;
+        ++k;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        ++j;
+        ++k;
+    }
+}
+
+void mergeSort(std::vector<int>& arr, int left, int right) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+
+        mergeSort(arr, left, mid);
+        mergeSort(arr, mid + 1, right);
+
+        merge(arr, left, mid, right);
+    }
+}
+
+int main() {
+    std::vector<int> arr = {9, 1, 3, 5, 0, 4, 2, 6, 8, 7};
+
+    mergeSort(arr, 0, arr.size() - 1);
+
+    for (int num : arr)
+        std::cout << num << " ";
+    std::cout << std::endl;
+
+    return 0;
+}
+//-------------------------------------------------------------------------------------------------------------------------
+Quicksort
+#include <iostream>
+#include <vector>
+
+int partition(std::vector<int>& arr, int low, int high) {
+    int pivot = arr[high];
+    int i = low - 1;
+
+    for (int j = low; j <= high - 1; ++j) {
+        if (arr[j] <= pivot) {
+            ++i;
+            std::swap(arr[i], arr[j]);
+        }
+    }
+    std::swap(arr[i + 1], arr[high]);
+    return i + 1;
+}
+
+void quickSort(std::vector<int>& arr, int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+int main() {
+    std::vector<int> arr = {9, 1, 3, 5, 0, 4, 2, 6, 8, 7};
+
+    quickSort(arr, 0, arr.size() - 1);
+
+    for (int num : arr)
+        std::cout << num << " ";
+    std::cout << std::endl;
+
+    return 0;
+}
+/*2. Modifique el algoritmo "divide y vencerás" para la multiplicación de grandes
+enteros de forma que permita multiplicar números en binario. Ilustre el
+funcionamiento del algoritmo a la hora de multiplicar los siguientes enteros:
+A = 10011011 y B = 10111010. */
+#include <iostream>
+#include <string>
+#include <bitset>
+
+std::string addBinary(const std::string &a, const std::string &b) {
+    std::string result = "";
+    int s = 0;
+    int i = a.size() - 1, j = b.size() - 1;
+    while (i >= 0 || j >= 0 || s == 1) {
+        s += ((i >= 0) ? a[i] - '0' : 0);
+        s += ((j >= 0) ? b[j] - '0' : 0);
+        result = char(s % 2 + '0') + result;
+        s /= 2;
+        i--; j--;
+    }
+    return result;
+}
+
+std::string multiplyBinary(const std::string &X, const std::string &Y) {
+    int n = std::max(X.size(), Y.size());
+    if (n == 0) return "0";
+    if (n == 1) return std::to_string((X[0] - '0') * (Y[0] - '0'));
+
+    int fh = n / 2;
+    int sh = n - fh;
+
+    std::string X1 = X.substr(0, fh);
+    std::string X0 = X.substr(fh, sh);
+    std::string Y1 = Y.substr(0, fh);
+    std::string Y0 = Y.substr(fh, sh);
+
+    std::string A = multiplyBinary(X1, Y1);
+    std::string C = multiplyBinary(X0, Y0);
+    std::string B = multiplyBinary(addBinary(X1, X0), addBinary(Y1, Y0));
+    B = addBinary(B, "-" + A);
+    B = addBinary(B, "-" + C);
+
+    for (int i = 0; i < 2 * sh; i++) A += "0";
+    for (int i = 0; i < sh; i++) B += "0";
+
+    return addBinary(addBinary(A, B), C);
+}
+
+int main() {
+    std::string A = "10011011";
+    std::string B = "10111010";
+
+    std::string result = multiplyBinary(A, B);
+    std::cout << "Result of " << A << " * " << B << " is " << result << std::endl;
+
+    return 0;
+}
+//------------------------------------------------------------------------------------------------------------------
+/*4. Sea T(n) la función que describe el tiempo de ejecución de un algoritmo "divide
+y vencerás". Si T(n) es de la forma T(n) = aT(n/b) + nk
+ con a ≥ 1, b > 1, analice
+el tiempo de ejecución del algoritmo dependiendo de los valores de a y b. */
+#include <iostream>
+#include <vector>
+#include <string>
+
+// Función auxiliar para calcular la LCS de dos cadenas usando programación dinámica
+std::vector<int> LCS_Length(const std::string& X, const std::string& Y) {
+    int m = X.length();
+    int n = Y.length();
+    std::vector<int> current(n+1, 0);
+    std::vector<int> previous(n+1, 0);
+
+    for (int i = 1; i <= m; ++i) {
+        std::swap(current, previous);
+        for (int j = 1; j <= n; ++j) {
+            if (X[i-1] == Y[j-1])
+                current[j] = previous[j-1] + 1;
+            else
+                current[j] = std::max(previous[j], current[j-1]);
+        }
+    }
+    return current;
+}
+
+// Algoritmo de Hirschberg para encontrar la LCS
+std::string Hirschberg_LCS(const std::string& X, const std::string& Y) {
+    int m = X.length();
+    int n = Y.length();
+
+    if (m == 0) return "";
+    if (m == 1) {
+        if (Y.find(X) != std::string::npos) return X;
+        else return "";
+    }
+
+    int i = m / 2;
+
+    std::vector<int> L1 = LCS_Length(X.substr(0, i), Y);
+    std::vector<int> L2 = LCS_Length(std::string(X.rbegin(), X.rbegin() + (m - i)), std::string(Y.rbegin(), Y.rend()));
+
+    int k = 0;
+    int max_len = 0;
+
+    for (int j = 0; j <= n; ++j) {
+        if (L1[j] + L2[n-j] > max_len) {
+            max_len = L1[j] + L2[n-j];
+            k = j;
+        }
+    }
+
+    std::string X1 = X.substr(0, i);
+    std::string X2 = X.substr(i, m - i);
+    std::string Y1 = Y.substr(0, k);
+    std::string Y2 = Y.substr(k, n - k);
+
+    std::string LCS1 = Hirschberg_LCS(X1, Y1);
+    std::string LCS2 = Hirschberg_LCS(X2, Y2);
+
+    return LCS1 + LCS2;
+}
+
+int main() {
+    std::string X = "AGGTAB";
+    std::string Y = "GXTXAYB";
+
+    std::string lcs = Hirschberg_LCS(X, Y);
+    std::cout << "Longest Common Subsequence: " << lcs << std::endl;
+
+    return 0;
+}
+//-------------------------------------------------------------------------------------------------
+/*6. Sea A un array bidimensional, de tamaño n×n, parcialmente ordenado. El
+criterio de ordenación es el siguiente: Los elementos en cada fila y columna se
+encuentran en orden ascendente.*/
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int binarySearchPosition(const std::vector<int>& arr, int l, int r, int key) {
+    while (r - l > 1) {
+        int m = l + (r - l) / 2;
+        if (arr[m] >= key)
+            r = m;
+        else
+            l = m;
+    }
+    return r;
+}
+
+std::vector<int> findLIS(const std::vector<int>& sequence) {
+    if (sequence.empty()) return {};
+
+    std::vector<int> lis;
+    lis.push_back(sequence[0]);
+
+    for (size_t i = 1; i < sequence.size(); ++i) {
+        if (sequence[i] < lis[0]) {
+            // Nuevo valor mínimo
+            lis[0] = sequence[i];
+        } else if (sequence[i] > lis.back()) {
+            // sequence[i] extiende la mayor subsecuencia creciente
+            lis.push_back(sequence[i]);
+        } else {
+            // sequence[i] reemplaza al elemento más pequeño en lis
+            int pos = binarySearchPosition(lis, -1, lis.size() - 1, sequence[i]);
+            lis[pos] = sequence[i];
+        }
+    }
+
+    return lis;
+}
+
+int main() {
+    std::vector<int> sequence = {10, 22, 9, 33, 21, 50, 41, 60, 80};
+
+    std::vector<int> lis = findLIS(sequence);
+
+    std::cout << "Longest Increasing Subsequence: ";
+    for (int num : lis) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
+
+    return 0;
+}
+//-------------------------------------------------------------------------------------------------
+/*7. Diseñe un algoritmo "divide y vencerás" que permita encontrar la mediana de un
+vector sin tener que ordenar el vector previamente.*/
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+// Función para encontrar la mediana de un pequeño grupo
+int findMedian(std::vector<int>& vec, int start, int n) {
+    std::sort(vec.begin() + start, vec.begin() + start + n);
+    return vec[start + n/2];
+}
+
+// Función para realizar la partición alrededor de un pivote
+int partition(std::vector<int>& vec, int left, int right, int pivot) {
+    int pivotValue = vec[pivot];
+    std::swap(vec[pivot], vec[right]);
+    int storeIndex = left;
+
+    for (int i = left; i < right; ++i) {
+        if (vec[i] < pivotValue) {
+            std::swap(vec[i], vec[storeIndex]);
+            ++storeIndex;
+        }
+    }
+    std::swap(vec[storeIndex], vec[right]);
+    return storeIndex;
+}
+
+// Función principal de selección de k-ésimo menor elemento
+int select(std::vector<int>& vec, int left, int right, int k) {
+    while (true) {
+        if (left == right)
+            return vec[left];
+
+        // Dividir en grupos de 5 y encontrar medianas
+        int n = right - left + 1;
+        int i;
+        std::vector<int> medians((n + 4) / 5);
+        for (i = 0; i < n / 5; ++i) {
+            medians[i] = findMedian(vec, left + i * 5, 5);
+        }
+        if (i * 5 < n) {
+            medians[i] = findMedian(vec, left + i * 5, n % 5);
+            ++i;
+        }
+
+        // Encontrar la mediana de las medianas
+        int medianOfMedians = select(medians, 0, i - 1, i / 2);
+
+        // Particionar alrededor de la mediana de las medianas
+        int pivotIndex = partition(vec, left, right, std::find(vec.begin() + left, vec.begin() + right, medianOfMedians) - vec.begin());
+
+        // La posición del pivote
+        int pivotDist = pivotIndex - left;
+
+        if (pivotDist == k)
+            return vec[pivotIndex];
+        else if (pivotDist > k)
+            right = pivotIndex - 1;
+        else {
+            k = k - pivotDist - 1;
+            left = pivotIndex + 1;
+        }
+    }
+}
+
+// Función para encontrar la mediana en un vector
+int findMedian(std::vector<int>& vec) {
+    int n = vec.size();
+    return select(vec, 0, n - 1, n / 2);
+}
+
+int main() {
+    std::vector<int> vec = {12, 3, 5, 7, 4, 19, 26};
+    int median = findMedian(vec);
+    std::cout << "Median is: " << median << std::endl;
+    return 0;
+}
+//-------------------------------------------------------------------------------------------------
+/*8 Diseñe un algoritmo "divide y vencerás" que permita calcular el k−ésimo menor
+elemento de un vector.*/
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cstdlib>
+#include <ctime>
+
+// Función para particionar el vector alrededor del pivote
+int partition(std::vector<int>& arr, int left, int right, int pivotIndex) {
+    int pivotValue = arr[pivotIndex];
+    std::swap(arr[pivotIndex], arr[right]);
+    int storeIndex = left;
+
+    for (int i = left; i < right; ++i) {
+        if (arr[i] < pivotValue) {
+            std::swap(arr[i], arr[storeIndex]);
+            ++storeIndex;
+        }
+    }
+    std::swap(arr[storeIndex], arr[right]);
+    return storeIndex;
+}
+
+// Función Quickselect para encontrar el k-ésimo menor elemento
+int quickselect(std::vector<int>& arr, int left, int right, int k) {
+    if (left == right)
+        return arr[left];
+
+    // Elegir un pivote aleatorio
+    int pivotIndex = left + rand() % (right - left + 1);
+
+    // Particionar el vector alrededor del pivote
+    pivotIndex = partition(arr, left, right, pivotIndex);
+
+    // La posición del pivote en el vector particionado
+    int pivotDist = pivotIndex - left;
+
+    if (pivotDist == k)
+        return arr[pivotIndex];
+    else if (pivotDist > k)
+        return quickselect(arr, left, pivotIndex - 1, k);
+    else
+        return quickselect(arr, pivotIndex + 1, right, k - pivotDist - 1);
+}
+
+int findKthSmallest(std::vector<int>& arr, int k) {
+    srand(time(0));
+    return quickselect(arr, 0, arr.size() - 1, k - 1);
+}
+
+int main() {
+    std::vector<int> arr = {12, 3, 5, 7, 4, 19, 26};
+    int k = 3;
+    int result = findKthSmallest(arr, k);
+    std::cout << "The " << k << "rd smallest element is " << result << std::endl;
+    return 0;
+}
+//-------------------------------------------------------------------------------------------------
+/*9. Dado un vector de n elementos, de los cuales algunos están duplicados, diseñe
+un algoritmo O(n log n) que permita eliminar todos los elementos duplicados. */ 
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+void removeDuplicates(std::vector<int>& vec) {
+    if (vec.empty()) return;
+
+    // Ordenar el vector
+    std::sort(vec.begin(), vec.end());
+
+    // Variable para almacenar la posición del último elemento único encontrado
+    int uniqueIndex = 0;
+
+    // Recorrer el vector y mover los elementos únicos a la parte frontal
+    for (size_t i = 1; i < vec.size(); ++i) {
+        if (vec[i] != vec[uniqueIndex]) {
+            ++uniqueIndex;
+            vec[uniqueIndex] = vec[i];
+        }
+    }
+
+    // Redimensionar el vector para eliminar los elementos duplicados al final
+    vec.resize(uniqueIndex + 1);
+}
+
+int main() {
+    std::vector<int> vec = {4, 2, 5, 2, 3, 5, 1, 4, 3, 2};
+
+    removeDuplicates(vec);
+
+    std::cout << "Vector after removing duplicates: ";
+    for (const int& num : vec) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
+
+    return 0;
+}
+//-------------------------------------------------------------------------------------------------
+/*10 Dado un vector ordenado de números enteros X, diseñe un algoritmo "divide y
+vencerás" que permita determinar si existe un índice i tal que X[i] = i. */
+#include <iostream>
+#include <vector>
+
+int findMagicIndex(const std::vector<int>& vec, int left, int right) {
+    if (left > right) {
+        return -1;
+    }
+
+    int mid = left + (right - left) / 2;
+
+    if (vec[mid] == mid) {
+        return mid;
+    } else if (vec[mid] > mid) {
+        return findMagicIndex(vec, left, mid - 1);
+    } else {
+        return findMagicIndex(vec, mid + 1, right);
+    }
+}
+
+int findMagicIndex(const std::vector<int>& vec) {
+    return findMagicIndex(vec, 0, vec.size() - 1);
+}
+
+int main() {
+    std::vector<int> vec = {-10, -5, 0, 3, 7};
+    int result = findMagicIndex(vec);
+    if (result != -1) {
+        std::cout << "Magic index found at: " << result << std::endl;
+    } else {
+        std::cout << "No magic index found." << std::endl;
+    }
+    return 0;
+}
+

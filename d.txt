@@ -1,0 +1,262 @@
+//quick
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+vector<int> quicksort(vector<int> arr) {
+    if (arr.size() <= 1) {
+        return arr;
+    }
+
+    int pivote = arr.back();
+    vector<int> menores;
+    vector<int> mayores;
+
+    for (size_t i = 0; i < arr.size() - 1; ++i) {
+        if (arr[i] <= pivote) {
+            menores.push_back(arr[i]);
+        }
+        else {
+            mayores.push_back(arr[i]);
+        }
+    }
+
+    menores = quicksort(menores);
+    mayores = quicksort(mayores);
+
+
+    vector<int> resultado;
+
+    resultado.insert(resultado.begin(), menores.begin(), menores.end());
+    resultado.push_back(pivote);
+    resultado.insert(resultado.end(), mayores.begin(), mayores.end());
+
+    return resultado;
+}
+
+int main() {
+    vector<int> arreglo = { 7, 4, 3, 9, 23, 3, 6 };
+    vector<int> resultado = quicksort(arreglo);
+
+
+    for (const auto& elemento : resultado) {
+        cout << elemento << " ";
+    }
+
+    return 0;
+}
+--------------------------------------------------------------------------------------------------
+//merge
+#include <iostream>
+#include <vector>
+
+
+using namespace std;
+
+vector<int> mergesort(vector<int>a) {
+    if (a.size() <= 1) {
+        return a;
+    }
+    else {
+        int n = a.size() / 2;
+        vector<int> a1(a.begin(), a.begin() + n);
+        vector<int> a2(a.begin() + n, a.end());
+        a1 = mergesort(a1);
+        a2 = mergesort(a2);
+        int i1 = 0;
+        int i2 = 0;
+        vector<int> t;
+        for (; i1< a1.size() && i2 < a2.size();) {
+            if (a1[i1] < a2[i2]) {
+                t.push_back(a1[i1]);
+                i1++;
+
+            }
+            else {
+                t.push_back(a2[i2]);
+                i2++;
+            }
+        }
+        while (i1 < a1.size()) {
+            t.push_back(a1[i1]);
+            i1++;
+        }
+        while (i2 < a2.size()) {
+            t.push_back(a2[i2]);
+            i2++;
+        }
+        return t;
+    }
+
+}
+
+int main() {
+    vector<int > t1 = { 190,10,7,4,3,9,23,3,6 ,56};
+    t1 = mergesort(t1);
+    for (size_t u = 0; u < t1.size(); u++) {
+        cout << t1[u] << " ";
+    }
+    return 0;
+}
+---------------------------------------------------------------------------------------------------
+//moneda 
+clude <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct Moneda {
+    int valor;
+    int cantidad;
+};
+
+
+bool compararMonedas(Moneda a, Moneda b) {
+    return a.valor > b.valor;
+}
+
+
+void darCambio(vector<Moneda>& monedas, int cambio) {
+
+    sort(monedas.begin(), monedas.end(), compararMonedas);
+
+    for (const Moneda& moneda : monedas) {
+        int n_monedas = min(cambio / moneda.valor, moneda.cantidad);
+        if (n_monedas > 0) {
+            cout << "cantidad: " << n_monedas << "   valor de la moneda: " << moneda.valor << "$" << endl;
+            cambio -= n_monedas * moneda.valor;
+        }
+    }
+
+    if (cambio > 0) {
+        cout << "No se puede dar cambio exacto." << endl;
+    }
+}
+
+int main() {
+
+    vector<Moneda> monedas = { {25, 3}, {10, 2}, {5, 5}, {1, 10} };
+    int cantidadTotal = 63;
+
+    darCambio(monedas, cantidadTotal);
+
+    return 0;
+}
+---------------------------------------------------------------------------------------------------
+//mediana 
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+void intercambiar(vector<int>& arr, int a, int b) {
+    int temp = arr[a];
+    arr[a] = arr[b];
+    arr[b] = temp;
+}
+
+
+int particion(vector<int>& arr, int bajo, int alto) {
+    int pivote = arr[alto];
+    int i = bajo - 1;
+
+    for (int j = bajo; j < alto; ++j) {
+        if (arr[j] <= pivote) {
+            ++i;
+            intercambiar(arr, i, j);
+        }
+    }
+
+    intercambiar(arr, i + 1, alto);
+    return i + 1;
+}
+
+
+int busca(vector<int>& arr, int bajo, int alto, int k) {
+    if (bajo <= alto) {
+        int indice_piv = particion(arr, bajo, alto);
+
+        if (indice_piv == k) {
+            return arr[indice_piv];
+        }
+        else if (indice_piv < k) {
+            return busca(arr, indice_piv + 1, alto, k);
+        }
+        else {
+            return busca(arr, bajo, indice_piv - 1, k);
+        }
+    }
+
+    return -1; 
+}
+
+
+double mediana(vector<int>& arr) {
+    int n = arr.size();
+
+    if (n % 2 == 1) {
+
+        return busca(arr, 0, n - 1, n / 2);
+    }
+    else {
+
+        int mediana1 = busca(arr, 0, n - 1, n / 2 - 1);
+        int mediana2 = busca(arr, 0, n - 1, n / 2);
+        return (mediana1 + mediana2) / 2.0;
+    }
+}
+
+int main() {
+    vector<int> arr = { 12, 4, 5, 2, 7, 3, 19, 6 };
+
+    double mediana1 = mediana(arr);
+
+    cout << "La mediana es: " << mediana1 << endl;
+
+    return 0;
+}
+---------------------------------------------------------------------------------------------------
+//indice
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+
+int busca(vector<int>& X, int inicio, int fin) {
+    if (inicio <= fin) {
+        int medio = inicio + (fin - inicio) / 2;
+
+        if (X[medio] == medio) {
+            return medio; 
+        }
+        else if (X[medio] > medio) {
+            return busca(X, inicio, medio - 1);
+        }
+        else {
+
+            return busca(X, medio + 1, fin);
+        }
+    }
+
+    return -1;
+}
+
+int main() {
+
+    vector<int> X = { -10, -5, 0, 3, 7, 9, 12, 17 };
+
+    int indiceEncontrado = busca(X, 0, X.size() - 1);
+
+    if (indiceEncontrado != -1) {
+        cout << "si se encontro X[i] = " << indiceEncontrado << endl;
+    }
+    else {
+        cout << "no existe" << endl;
+    }
+
+    return 0;
+}
